@@ -1,0 +1,7 @@
+---
+image:
+  pullsecret: canonical-registry-credentials
+
+meshProvider: knative
+
+metricsServer: http://prometheus-prometheus.observability:9090

@@ -1,0 +1,32 @@
+apiVersion: kctrl.carvel.dev/v1alpha1
+kind: PackageBuild
+metadata:
+  creationTimestamp: null
+  name: flagger.packages.kadras.io
+spec:
+  template:
+    spec:
+      app:
+        spec:
+          deploy:
+          - kapp:
+              intoNs: flagger-system
+          template:
+          - helmTemplate:
+              name: flagger
+              namespace: flagger-system
+              path: config/helm/upstream/flagger
+              valuesFrom:
+              - path: config/helm/values.yml
+          - ytt:
+              ignoreUnknownComments: true
+              paths:
+              - '-'
+              - config/carvel
+          - kbld: {}
+      export:
+      - imgpkgBundle:
+          image: ghcr.io/kadras-io/package-for-flagger
+          useKbldImagesLock: true
+        includePaths:
+        - config
