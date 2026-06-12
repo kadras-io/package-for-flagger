@@ -17,8 +17,8 @@ commands:
   - script: |
       kubectl config set-context --current --namespace=tests && \
       kapp deploy -a secretgen-controller-package -y \
-        -f https://github.com/kadras-io/package-for-secretgen-controller/releases/download/v0.22.1/package.yml \
-        -f https://github.com/kadras-io/package-for-secretgen-controller/releases/download/v0.22.1/metadata.yml
+        -f https://github.com/kadras-io/package-for-secretgen-controller/releases/download/v0.21.1/package.yml \
+        -f https://github.com/kadras-io/package-for-secretgen-controller/releases/download/v0.21.1/metadata.yml
   - script: |
       kubectl config set-context --current --namespace=tests && \
       kapp deploy -a cert-manager-package -y \
