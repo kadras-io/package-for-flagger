@@ -2,16 +2,16 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - helmChart:
-      appVersion: 1.43.0
-      version: 1.43.0
+      appVersion: 1.44.0
+      version: 1.44.0
     path: flagger
   path: config/helm/upstream
 - contents:
   - git:
-      commitTitle: 'Merge pull request #1908 from fluxcd/fix-goreleaser...'
-      sha: 01aa1c8e737567aa82caec111eefe6054adaffd9
+      commitTitle: 'Merge pull request #1950 from fluxcd/ci-ghcr...'
+      sha: 15bd6ad555e6c935da55f0ab95977be74c149bd6
       tags:
-      - v1.43.0
+      - v1.44.0
     path: flagger
   path: config/carvel/upstream
 kind: LockConfig
