@@ -5,14 +5,14 @@ directories:
       name: flagger
       repository:
         url: https://flagger.app
-      version: 1.44.0
+      version: 1.45.0
     path: flagger
   path: config/helm/upstream
 - contents:
   # The Flagger Helm chart doesn't include CRDs, which are created at runtime.
   # We fetch them explicitly to make it possible to instantiate CR as part of this package. 
   - git:
-      ref: v1.44.0
+      ref: v1.45.0
       url: https://github.com/fluxcd/flagger
     includePaths:
     - artifacts/flagger/crd.yaml
