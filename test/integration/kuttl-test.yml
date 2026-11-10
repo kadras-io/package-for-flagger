@@ -16,24 +16,15 @@ commands:
         -f https://github.com/carvel-dev/kapp-controller/releases/latest/download/release.yml
   - script: |
       kubectl config set-context --current --namespace=tests && \
-      kapp deploy -a secretgen-controller-package -y \
-        -f https://github.com/kadras-io/package-for-secretgen-controller/releases/download/v0.21.1/package.yml \
-        -f https://github.com/kadras-io/package-for-secretgen-controller/releases/download/v0.21.1/metadata.yml
-  - script: |
-      kubectl config set-context --current --namespace=tests && \
-      kapp deploy -a cert-manager-package -y \
-        -f https://github.com/kadras-io/package-for-cert-manager/releases/download/v1.21.1/package.yml \
-        -f https://github.com/kadras-io/package-for-cert-manager/releases/download/v1.21.1/metadata.yml
-  - script: |
-      kubectl config set-context --current --namespace=tests && \
-      kapp deploy -a contour-package -y \
-        -f https://github.com/kadras-io/package-for-contour/releases/download/v1.33.6/package.yml \
-        -f https://github.com/kadras-io/package-for-contour/releases/download/v1.33.6/metadata.yml
-  - script: |
-      kubectl config set-context --current --namespace=tests && \
+      kapp deploy -a kyverno-package -y \
+        -f https://github.com/kadras-io/package-for-kyverno/releases/download/v1.19.2/package.yml \
+        -f https://github.com/kadras-io/package-for-kyverno/releases/download/v1.19.2/metadata.yml && \
+      kapp deploy -a envoy-gateway-package -y \
+        -f https://github.com/kadras-io/package-for-envoy-gateway/releases/download/v1.10.0/package.yml \
+        -f https://github.com/kadras-io/package-for-envoy-gateway/releases/download/v1.10.0/metadata.yml && \
       kapp deploy -a knative-serving-package -y \
-        -f https://github.com/kadras-io/package-for-knative-serving/releases/download/v1.23.0/package.yml \
-        -f https://github.com/kadras-io/package-for-knative-serving/releases/download/v1.23.0/metadata.yml
+        -f https://github.com/kadras-io/package-for-knative-serving/releases/download/v1.24.0/package.yml \
+        -f https://github.com/kadras-io/package-for-knative-serving/releases/download/v1.24.0/metadata.yml
   - script: |
       kubectl config set-context --current --namespace=tests && \
       kapp deploy -a dependencies -y -f ./test/setup/dependencies

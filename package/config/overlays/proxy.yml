@@ -1,0 +1,26 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/flagger.star", "container", "deployment")
+
+#! Flagger reaches the metrics providers (Prometheus, Datadog...), the webhooks of the canary analysis,
+#! and the alert providers (Slack, Microsoft Teams...). Their HTTP clients use the proxy from the environment.
+#! The `proxy` field of an AlertProvider, or the `slack-proxy-url` and `msteams-proxy-url` flags, take precedence.
+
+#@ proxy = data.values.proxy
+#@ env = [{"name": name, "value": value} for name, value in [("HTTP_PROXY", proxy.http_proxy), ("HTTPS_PROXY", proxy.https_proxy), ("NO_PROXY", proxy.no_proxy)] if value]
+
+#@ if env:
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":deployment}})
+---
+spec:
+  template:
+    spec:
+      containers:
+        #@overlay/match by="name"
+        - name: #@ container
+          #@overlay/match missing_ok=True
+          env:
+          #@ for var in env:
+          - #@ var
+          #@ end
+#@ end

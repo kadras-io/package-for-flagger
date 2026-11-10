@@ -3,25 +3,18 @@ kind: PackageBuild
 metadata:
   name: flagger.packages.kadras.io
 spec:
+  release:
+  - resource: {}
   template:
     spec:
       app:
         spec:
           deploy:
-          - kapp:
-              intoNs: flagger-system
+          - kapp: {}
           template:
-          - helmTemplate:
-              name: flagger
-              namespace: flagger-system
-              path: config/helm/upstream/flagger
-              valuesFrom:
-              - path: config/helm/values.yml
           - ytt:
-              ignoreUnknownComments: true
               paths:
-              - '-'
-              - config/carvel
+              - config
           - kbld: {}
       export:
       - imgpkgBundle:

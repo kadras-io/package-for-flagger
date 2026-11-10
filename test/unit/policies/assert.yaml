@@ -1,0 +1,19 @@
+apiVersion: policies.kyverno.io/v1
+kind: NamespacedImageValidatingPolicy
+metadata:
+  name: flagger-verify-image
+  namespace: flagger-system
+spec:
+  validationActions:
+  - Deny
+  matchImageReferences:
+  - glob: ghcr.io/fluxcd/flagger*
+  attestors:
+  - name: cosign
+    cosign:
+      keyless:
+        identities:
+        - issuer: https://token.actions.githubusercontent.com
+          subjectRegExp: ^https://github\.com/fluxcd/flagger/.*$
+      ctlog:
+        url: https://rekor.sigstore.dev

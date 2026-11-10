@@ -1,0 +1,6 @@
+---
+# Removes the Flagger resources, their CustomResourceDefinitions, and the namespace, which the uninstallation kept.
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - script: ../cleanup.sh flagger-system

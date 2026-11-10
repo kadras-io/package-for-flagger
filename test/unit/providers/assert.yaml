@@ -1,0 +1,10 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger
+spec:
+  template:
+    spec:
+      (containers[?name == 'flagger'] | [0]):
+        (command[?starts_with(@, '-mesh-provider=')]): [-mesh-provider=knative]
+        (command[?starts_with(@, '-metrics-server=')]): [-metrics-server=http://prometheus.monitoring.svc.cluster.local:9090]

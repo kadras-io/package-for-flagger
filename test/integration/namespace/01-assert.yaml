@@ -1,0 +1,13 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podinfo-primary
+status:
+  readyReplicas: 1
+---
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+commands:
+  - timeout: 120
+    script: kubectl wait -n "$NAMESPACE" canary/podinfo --for=jsonpath='{.status.phase}'=Initialized --timeout=110s

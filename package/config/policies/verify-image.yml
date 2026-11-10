@@ -1,0 +1,52 @@
+#@ load("@ytt:data", "data")
+
+#@ if data.values.policies.enabled:
+---
+apiVersion: policies.kyverno.io/v1
+kind: NamespacedImageValidatingPolicy
+metadata:
+  name: flagger-verify-image
+  namespace: #@ data.values.namespace
+  annotations:
+    policies.kyverno.io/title: Verify Image
+    policies.kyverno.io/category: Software Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/minversion: 1.19.0
+    policies.kyverno.io/description: >-
+      Using the Cosign project, this policy checks all container images used by this package
+      to ensure they have been signed by the Flagger release workflow on GitHub Actions (keyless signing).
+spec:
+  webhookConfiguration:
+    timeoutSeconds: 30
+  #! Image verification only makes sense when Pods are admitted.
+  evaluation:
+    background:
+      enabled: false
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  matchImageReferences:
+    - glob: "ghcr.io/fluxcd/flagger*"
+  attestors:
+    - name: cosign
+      cosign:
+        #! The Flagger images are signed with Cosign keyless, from the release workflow of the fluxcd/flagger repository,
+        #! and their signatures are recorded in the Rekor transparency log.
+        #! See: https://github.com/fluxcd/flagger/blob/main/.github/workflows/release.yml
+        keyless:
+          identities:
+            - issuer: https://token.actions.githubusercontent.com
+              subjectRegExp: ^https://github\.com/fluxcd/flagger/.*$
+        ctlog:
+          url: https://rekor.sigstore.dev
+  validations:
+    - expression: >-
+        images.containers.map(image, verifyImageSignatures(image, [attestors.cosign])).all(e, e > 0)
+      message: The Flagger images must be signed by the Flagger release workflow.
+#@ end

@@ -1,0 +1,26 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/flagger.star", "upstream_namespace")
+
+#! Flagger runs in the package namespace. The upstream Helm chart doesn't create it,
+#! and it's rendered with the default namespace, replaced here. With high availability,
+#! the leader election namespace is set to the package namespace too (see lib/flagger.star).
+
+#@ namespace = data.values.namespace
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: #@ namespace
+
+#@overlay/match by=overlay.subset({"metadata":{"namespace":upstream_namespace}}), expects="1+"
+---
+metadata:
+  namespace: #@ namespace
+
+#@overlay/match by=overlay.subset({"kind":"ClusterRoleBinding"}), expects="1+"
+---
+subjects:
+#@overlay/match by=overlay.subset({"kind":"ServiceAccount"})
+- namespace: #@ namespace

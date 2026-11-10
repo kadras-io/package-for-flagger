@@ -1,0 +1,9 @@
+---
+args:
+  cluster-name: production
+  -no-cross-namespace-refs: true
+  --include-label-prefix: app.kubernetes.io
+  # An upstream flag can be removed.
+  slack-user: null
+  # A computed flag can be overridden.
+  log-level: debug

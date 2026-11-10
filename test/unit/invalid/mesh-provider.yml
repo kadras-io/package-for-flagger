@@ -1,0 +1,3 @@
+# expected: a provider supported by Flagger
+---
+mesh_provider: envoy-gateway

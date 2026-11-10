@@ -1,0 +1,24 @@
+# A single replica, without leader election, doesn't get a PodDisruptionBudget.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+---
+# No additional certificate authorities.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: flagger-ca-certificates
+---
+apiVersion: policies.kyverno.io/v1
+kind: NamespacedImageValidatingPolicy
+---
+# The optional upstream resources aren't rendered.
+apiVersion: v1
+kind: Service
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger-prometheus

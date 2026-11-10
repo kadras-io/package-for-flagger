@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger
+spec:
+  template:
+    spec:
+      (containers[?name == 'flagger'] | [0]):
+        # The executable stays first, and all the flags start with a single dash.
+        (command[0]): ./flagger
+        (contains(command, '-cluster-name=production')): true
+        (contains(command, '-no-cross-namespace-refs=true')): true
+        (contains(command, '-include-label-prefix=app.kubernetes.io')): true
+        (command[?starts_with(@, '-slack-user')] | length(@)): 0
+        (command[?starts_with(@, '-log-level=')]): [-log-level=debug]
+        # The other upstream flags are kept.
+        (contains(command, '-enable-config-tracking=true')): true

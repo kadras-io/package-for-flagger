@@ -1,0 +1,15 @@
+---
+# The Flagger image is verified by Kyverno before Flagger is admitted.
+apiVersion: policies.kyverno.io/v1
+kind: NamespacedImageValidatingPolicy
+metadata:
+  name: flagger-verify-image
+  namespace: flagger-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger
+  namespace: flagger-system
+status:
+  readyReplicas: 1

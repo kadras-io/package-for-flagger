@@ -1,0 +1,21 @@
+#@ load("@ytt:overlay", "overlay")
+
+#! Flagger owns the workloads it generates for each Canary: the primary Deployment, the Services,
+#! the HorizontalPodAutoscaler, and the copies of the ConfigMaps and Secrets. Deleting the CustomResourceDefinitions,
+#! or the namespace with the MetricTemplates and AlertProviders in it, would delete the Canaries, and Kubernetes would
+#! garbage-collect the primary workloads serving the production traffic.
+#! Instead, uninstalling the package keeps the CustomResourceDefinitions and the namespace, like `helm uninstall`:
+#! Flagger is deleted, and the Canaries and their workloads stay, waiting for Flagger to be installed again.
+#! To remove them too, follow the procedure in docs/upgrade.md.
+#! When the package is installed again, kapp updates the resources it left behind instead of failing because they already exist.
+#! See: https://docs.flagger.app/main/install/flagger-install-on-kubernetes and https://carvel.dev/kapp/docs/latest/apply/
+
+#@overlay/match by=overlay.or_op(overlay.subset({"kind":"CustomResourceDefinition"}), overlay.subset({"kind":"Namespace"})), expects="1+"
+---
+metadata:
+  #@overlay/match missing_ok=True
+  annotations:
+    #@overlay/match missing_ok=True
+    kapp.k14s.io/delete-strategy: orphan
+    #@overlay/match missing_ok=True
+    kapp.k14s.io/create-strategy: fallback-on-update

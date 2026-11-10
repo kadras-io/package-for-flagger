@@ -1,0 +1,3 @@
+# expected: a value >= 1
+---
+replicas: 0

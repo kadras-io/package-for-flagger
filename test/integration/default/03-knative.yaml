@@ -1,0 +1,30 @@
+---
+# A Knative Service released by Flagger via the `knative` provider, set on the Canary,
+# which shifts the traffic between its revisions.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: podinfo-knative
+spec:
+  template:
+    spec:
+      containers:
+      - image: ghcr.io/stefanprodan/podinfo:6.16.0
+        ports:
+        - containerPort: 9898
+---
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: podinfo-knative
+spec:
+  provider: knative
+  targetRef:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: podinfo-knative
+  analysis:
+    interval: 10s
+    threshold: 2
+    maxWeight: 50
+    stepWeight: 25

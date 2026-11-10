@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flagger-system
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+  annotations:
+    # Uninstalling the package keeps the namespace and the resources in it,
+    # and installing it again adopts them.
+    kapp.k14s.io/delete-strategy: orphan
+    kapp.k14s.io/create-strategy: fallback-on-update
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: canaries.flagger.app
+  annotations:
+    # Deleting the Canaries would garbage-collect the primary workloads they own.
+    kapp.k14s.io/delete-strategy: orphan
+    kapp.k14s.io/create-strategy: fallback-on-update
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: metrictemplates.flagger.app
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: alertproviders.flagger.app
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flagger
+  namespace: flagger-system
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger
+  namespace: flagger-system
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        # The upstream annotations injecting sidecars are removed.
+        (contains(keys(@), 'linkerd.io/inject')): false
+        (contains(keys(@), 'appmesh.k8s.aws/sidecarInjectorWebhook')): false
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+      - name: canonical-registry-credentials
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      (volumes[?name == 'kube-api-access'] | length(@)): 1
+      (containers[?name == 'flagger'] | [0]):
+        command:
+        - ./flagger
+        - -log-level=info
+        - -metrics-server=http://prometheus-prometheus.observability:9090
+        - -enable-config-tracking=true
+        - -slack-user=flagger
+        - -zap-encoding=json
+        - -mesh-provider=gatewayapi:v1
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        (volumeMounts[?name == 'kube-api-access'] | length(@)): 1
+        (env || `[]` | [?name == 'HTTPS_PROXY'] | length(@)): 0
+        (env || `[]` | [?name == 'SSL_CERT_DIR'] | length(@)): 0
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: flagger
+roleRef:
+  name: flagger
+subjects:
+- kind: ServiceAccount
+  name: flagger
+  namespace: flagger-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: canonical-registry-credentials
+  namespace: flagger-system

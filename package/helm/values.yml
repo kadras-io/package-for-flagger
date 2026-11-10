@@ -1,0 +1,21 @@
+---
+# Values for rendering the upstream Helm chart into config/upstream (see `task vendor`).
+# They only cover what's fixed for the package: what users can configure
+# is in config/values-schema.yml and applied via ytt overlays on the rendered manifests.
+
+# The CustomResourceDefinitions are part of the package, so that Canaries, MetricTemplates,
+# and AlertProviders can be created together with it. Upstream, they're installed separately.
+crd:
+  create: true
+
+# The Secret is created by the package and populated by secretgen-controller (see overlays/image-pull-secret.yml).
+image:
+  pullSecret: canonical-registry-credentials
+
+# The Prometheus annotations, which can be removed via `observability.metrics.enabled`.
+# The upstream ones injecting the Linkerd and App Mesh sidecars are removed (Helm merges maps, so they're set to null).
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  appmesh.k8s.aws/sidecarInjectorWebhook: null
+  linkerd.io/inject: null

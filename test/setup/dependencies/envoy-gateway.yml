@@ -1,0 +1,31 @@
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  name: envoy-gateway
+  namespace: tests
+  annotations:
+    kapp.k14s.io/change-group: envoy-gateway
+    kapp.k14s.io/change-rule.serviceaccount: delete before deleting serviceaccount
+spec:
+  serviceAccountName: kadras-install-sa
+  packageRef:
+    refName: envoy-gateway.packages.kadras.io
+    versionSelection:
+      constraints: 1.10.0
+  values:
+    - secretRef:
+        name: envoy-gateway-values
+
+---
+# The Canaries of the Gateway API provider attach their HTTPRoutes to the external Gateway.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: envoy-gateway-values
+  namespace: tests
+stringData:
+  values.yaml: |
+    envoy:
+      service:
+        type: ClusterIP

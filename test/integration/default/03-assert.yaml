@@ -1,0 +1,9 @@
+---
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+commands:
+  - timeout: 120
+    script: kubectl wait -n "$NAMESPACE" canary/podinfo-knative --for=jsonpath='{.status.phase}'=Initialized --timeout=110s
+  # Flagger pins the traffic to the primary revision.
+  - script: |
+      test "$(kubectl get -n "$NAMESPACE" ksvc/podinfo-knative -o jsonpath='{.metadata.annotations.flagger\.app/primary-revision}')" = podinfo-knative-00001

@@ -1,0 +1,3 @@
+---
+mesh_provider: knative
+metrics_server: http://prometheus.monitoring.svc.cluster.local:9090

@@ -1,0 +1,20 @@
+# No resource left in the upstream namespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flagger-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: flagger-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: flagger-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: flagger-system

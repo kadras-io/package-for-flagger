@@ -1,0 +1,6 @@
+---
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - script: kubectl set image -n "$NAMESPACE" deployment/podinfo podinfod=ghcr.io/stefanprodan/podinfo:6.17.0
+  - script: kubectl wait -n "$NAMESPACE" canary/podinfo --for=jsonpath='{.status.phase}'=Progressing --timeout=60s

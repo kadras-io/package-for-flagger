@@ -1,0 +1,21 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/flagger.star", "deployment")
+
+#! Flagger exposes metrics in the Prometheus format on port 8080 (`/metrics`),
+#! and its Pods are annotated for Prometheus scraping (see helm/values.yml).
+#! The log level and format are set via flags (see lib/flagger.star).
+#! See: https://docs.flagger.app/main/usage/monitoring
+
+#@ if not data.values.observability.metrics.enabled:
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":deployment}})
+---
+spec:
+  template:
+    metadata:
+      annotations:
+        #@overlay/remove
+        prometheus.io/scrape:
+        #@overlay/remove
+        prometheus.io/port:
+#@ end

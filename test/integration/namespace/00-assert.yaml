@@ -1,0 +1,22 @@
+---
+# Flagger runs in a custom namespace, with a standby replica.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger
+  namespace: delivery
+status:
+  readyReplicas: 2
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: flagger
+  namespace: delivery
+---
+# A single replica holds the leader election lease, in the package namespace.
+apiVersion: coordination.k8s.io/v1
+kind: Lease
+metadata:
+  name: flagger-leader-election
+  namespace: delivery

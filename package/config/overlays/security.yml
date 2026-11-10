@@ -1,0 +1,100 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/flagger.star", "container", "deployment", "service_account")
+
+#! =============================================
+#! Pod Security Standards
+#! =============================================
+
+#! The upstream Helm chart runs Flagger as a non-root user with a read-only root filesystem, but doesn't drop
+#! the capabilities, forbid privilege escalation, or set the seccomp profile, which the "restricted" Pod Security Standard requires.
+#! The standard is enforced on the package namespace.
+#! See: https://kubernetes.io/docs/concepts/security/pod-security-standards/
+
+#@overlay/match by=overlay.subset({"kind":"Namespace"})
+---
+metadata:
+  #@overlay/match missing_ok=True
+  labels:
+    #@overlay/match missing_ok=True
+    pod-security.kubernetes.io/enforce: restricted
+    #@overlay/match missing_ok=True
+    pod-security.kubernetes.io/audit: restricted
+    #@overlay/match missing_ok=True
+    pod-security.kubernetes.io/warn: restricted
+
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":deployment}})
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      #@overlay/match by="name"
+      - name: #@ container
+        securityContext:
+          #@overlay/match missing_ok=True
+          runAsNonRoot: true
+          #@overlay/match missing_ok=True
+          allowPrivilegeEscalation: false
+          #@overlay/match missing_ok=True
+          capabilities:
+            drop:
+            - ALL
+
+#! =============================================
+#! Service Account Tokens
+#! =============================================
+
+#! The ServiceAccount auto-mounts its token, so all the containers of a Pod would get one.
+#! Instead, the token is mounted explicitly in the Flagger container, which accesses the Kubernetes API,
+#! with the same projected volume Kubernetes would otherwise add.
+#! See: https://kyverno.io/policies/other/restrict-automount-sa-token/restrict-automount-sa-token/
+
+#@ kube_api_access = "kube-api-access"
+
+#@overlay/match by=overlay.subset({"kind":"ServiceAccount", "metadata":{"name":service_account}})
+---
+#@overlay/match missing_ok=True
+automountServiceAccountToken: false
+
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":deployment}})
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      automountServiceAccountToken: false
+      #@overlay/match missing_ok=True
+      volumes:
+      #@overlay/append
+      - name: #@ kube_api_access
+        projected:
+          defaultMode: 420
+          sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3607
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+              - key: ca.crt
+                path: ca.crt
+          - downwardAPI:
+              items:
+              - path: namespace
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+      containers:
+      #@overlay/match by="name"
+      - name: #@ container
+        #@overlay/match missing_ok=True
+        volumeMounts:
+        #@overlay/append
+        - name: #@ kube_api_access
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          readOnly: true

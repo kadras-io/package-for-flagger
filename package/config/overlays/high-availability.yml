@@ -1,0 +1,35 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/flagger.star", "deployment", "is_highly_available", "selector")
+
+#! Flagger runs a single active replica. Additional replicas are standby via leader election (see lib/flagger.star),
+#! ready to take over. Without leader election, two replicas would reconcile the same Canaries, so upstream
+#! replaces the Pod with the `Recreate` strategy. With leader election, it's rolled out instead,
+#! and the Pods are spread across nodes by the upstream anti-affinity rule.
+#! See: https://github.com/fluxcd/flagger/blob/main/charts/flagger/README.md
+
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":deployment}})
+---
+spec:
+  replicas: #@ data.values.replicas
+  #@ if is_highly_available():
+  #@overlay/replace
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  #@ end
+
+#@ if is_highly_available():
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: flagger
+  namespace: #@ data.values.namespace
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: #@ selector
+#@ end

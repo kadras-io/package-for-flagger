@@ -1,0 +1,17 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/flagger.star", "command_merger", "container", "deployment", "flagger_args")
+
+#! Flagger is configured via flags, set in the container command after the executable. The ones computed
+#! from the package values are merged into the upstream flags, then `args` is merged on top, so its flags take precedence.
+#! See: https://github.com/fluxcd/flagger/blob/main/cmd/flagger/main.go
+
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":deployment}})
+---
+spec:
+  template:
+    spec:
+      containers:
+        #@overlay/match by="name"
+        - name: #@ container
+          #@overlay/replace via=command_merger(flagger_args())
+          command:

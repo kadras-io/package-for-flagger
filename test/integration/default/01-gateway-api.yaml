@@ -1,0 +1,43 @@
+---
+# A Deployment released by Flagger via the default provider (`gatewayapi:v1`),
+# which shifts the traffic with an HTTPRoute attached to the external Gateway of Envoy Gateway.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podinfo
+spec:
+  selector:
+    matchLabels:
+      app: podinfo
+  template:
+    metadata:
+      labels:
+        app: podinfo
+    spec:
+      containers:
+      - name: podinfod
+        image: ghcr.io/stefanprodan/podinfo:6.16.0
+        ports:
+        - containerPort: 9898
+---
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: podinfo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: podinfo
+  service:
+    port: 9898
+    hosts:
+    - podinfo.127.0.0.1.sslip.io
+    gatewayRefs:
+    - name: external
+      namespace: envoy-gateway-system
+  analysis:
+    interval: 10s
+    threshold: 2
+    maxWeight: 50
+    stepWeight: 25

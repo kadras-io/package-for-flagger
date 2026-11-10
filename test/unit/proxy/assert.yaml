@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger
+spec:
+  template:
+    spec:
+      (containers[?name == 'flagger'] | [0]):
+        (env[?name == 'HTTP_PROXY'] | [0].value): http://proxy.example.com:3128
+        (env[?name == 'HTTPS_PROXY'] | [0].value): http://proxy.example.com:3128
+        (env[?name == 'NO_PROXY'] | [0].value): .cluster.local.,.cluster.local,.svc

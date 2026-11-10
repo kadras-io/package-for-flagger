@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger
+  namespace: delivery
+spec:
+  replicas: 2
+  # With leader election, the standby replicas can be rolled out.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+  template:
+    spec:
+      (containers[?name == 'flagger'] | [0]):
+        (contains(command, '-enable-leader-election=true')): true
+        (contains(command, '-leader-election-namespace=delivery')): true
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: flagger
+  namespace: delivery
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flagger
+      app.kubernetes.io/instance: flagger

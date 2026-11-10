@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: flagger-values
+  namespace: tests
+stringData:
+  values.yaml: |
+    policies:
+      enabled: true

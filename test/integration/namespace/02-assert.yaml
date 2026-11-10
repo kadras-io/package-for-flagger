@@ -1,0 +1,8 @@
+---
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+commands:
+  - timeout: 170
+    script: kubectl wait -n "$NAMESPACE" canary/podinfo --for=jsonpath='{.status.phase}'=Succeeded --timeout=160s
+  - script: |
+      test "$(kubectl get -n "$NAMESPACE" deployment/podinfo-primary -o jsonpath='{.spec.template.spec.containers[0].image}')" = ghcr.io/stefanprodan/podinfo:6.17.0

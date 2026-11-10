@@ -1,0 +1,9 @@
+---
+# A new revision triggers the canary analysis. The traffic is shifted to it step by step, then it's promoted.
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - script: |
+      kubectl patch -n "$NAMESPACE" ksvc/podinfo-knative --type=json \
+        -p '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"ghcr.io/stefanprodan/podinfo:6.17.0"}]'
+  - script: kubectl wait -n "$NAMESPACE" canary/podinfo-knative --for=jsonpath='{.status.phase}'=Progressing --timeout=90s

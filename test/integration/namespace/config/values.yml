@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: flagger-values
+  namespace: tests
+stringData:
+  values.yaml: |
+    namespace: delivery
+    mesh_provider: kubernetes
+    replicas: 2
+    observability:
+      logging:
+        format: text
