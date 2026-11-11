@@ -14,6 +14,7 @@ A Carvel package for [Flagger](https://docs.flagger.app), a progressive delivery
 * **High availability**. Standby replicas via leader election, protected by a PodDisruptionBudget.
 * **Observability**. Structured logs, and metrics annotated for Prometheus scraping.
 * **Security**. Flagger complies with the `restricted` [Pod Security Standard](https://kubernetes.io/docs/concepts/security/pod-security-standards/), enforced on its namespace, and mounts the service account token explicitly. Optionally, Kyverno verifies the signature of the Flagger image.
+* **Access**. The Kubernetes default roles are extended with the Flagger resources: `edit` and `admin` manage the Canaries of a namespace, with their metric templates and alert providers, while `view` reads them. See [docs/rbac.md](docs/rbac.md).
 
 ## 🚀&nbsp; Getting Started
 
@@ -164,6 +165,7 @@ Features:
 * [High availability](docs/high-availability.md)
 * [Observability](docs/observability.md)
 * [Security](docs/security.md)
+* [Access to the resources](docs/rbac.md)
 
 Operations:
 

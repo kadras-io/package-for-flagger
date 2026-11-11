@@ -1,0 +1,30 @@
+#! The permissions on the Flagger resources, added to the Kubernetes default roles via aggregation, so that the
+#! users bound to `admin`, `edit`, or `view` in a namespace can use them there. `view` is included in `edit`,
+#! and `edit` in `admin`. The resources are listed explicitly, so that new ones are granted deliberately.
+#! See: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles
+
+#! The progressive delivery of the applications of the namespace, with its metrics and alerts.
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: flagger-edit
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+rules:
+  - apiGroups: ["flagger.app"]
+    resources: ["canaries", "metrictemplates", "alertproviders"]
+    verbs: ["create", "delete", "deletecollection", "patch", "update"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: flagger-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+rules:
+  - apiGroups: ["flagger.app"]
+    resources: ["canaries", "metrictemplates", "alertproviders"]
+    verbs: ["get", "list", "watch"]
